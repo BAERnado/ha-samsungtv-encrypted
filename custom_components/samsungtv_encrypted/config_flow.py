@@ -7,7 +7,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_MAC, CONF_NAME, CONF_PORT
 
 from . import DOMAIN
-from .PySmartCrypto.pysmartcrypto import PySmartCrypto
+from .PySmartCrypto.pysmartcrypto import PairingError, PySmartCrypto
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,6 +85,9 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 pairing_data = await self.hass.async_add_executor_job(
                     self._pairing.finish_pairing, user_input[CONF_PIN]
                 )
+            except PairingError as err:
+                _LOGGER.warning("Samsung TV pairing failed: %s", err)
+                errors["base"] = "pairing_failed"
             except Exception:
                 _LOGGER.exception("Could not finish Samsung TV pairing")
                 errors["base"] = "cannot_connect"

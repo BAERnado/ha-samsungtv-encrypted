@@ -1,12 +1,19 @@
 from __future__ import print_function
 from . import crypto
-import sys
+import logging
 import re
 from .command_encryption import AESCipher
 import requests
 import time
 import websocket
 import threading
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class PairingError(Exception):
+    """Raised when Samsung TV pairing fails."""
+
 
 class PySmartCrypto():
     UserId = "654321"
@@ -30,7 +37,7 @@ class PySmartCrypto():
         output = re.search('state>([^<>]*)</state>', page, flags=re.IGNORECASE)
         if output is not None:
             state = output.group(1)
-            print("Current state: "+state)
+            _LOGGER.debug("Current TV PIN page state: %s", state)
             if state == "stopped":
                 return True
         return False
@@ -42,10 +49,10 @@ class PySmartCrypto():
     def StartPairing(self):
         self._lastRequestId=0
         if self.CheckPinPageOnTv():
-            print("Pin NOT on TV")
+            _LOGGER.debug("PIN page is not open on TV, requesting it")
             self.ShowPinPageOnTv()
         else:
-            print("Pin ON TV");
+            _LOGGER.debug("PIN page is already open on TV")
 
     def HelloExchange(self, pin):
         hello_output = crypto.generateServerHello(self.UserId,pin)
@@ -54,13 +61,14 @@ class PySmartCrypto():
         content = "{\"auth_Data\":{\"auth_type\":\"SPC\",\"GeneratorServerHello\":\"" + hello_output['serverHello'].hex().upper() + "\"}}"
         secondStepURL = self.GetFullRequestUri(1, self.AppId, self.deviceId)
         secondStepResponse = requests.post(secondStepURL, content).text
-        print('secondStepResponse: ' + secondStepResponse)
-        output = re.search(r'request_id.*?(\d).*?GeneratorClientHello.*?:.*?(\d[0-9a-zA-Z]*)', secondStepResponse, flags=re.IGNORECASE)
+        _LOGGER.debug("Received Samsung TV pairing step 1 response")
+        output = re.search(r'request_id.*?(\d+).*?GeneratorClientHello.*?:.*?([0-9a-f]+)', secondStepResponse, flags=re.IGNORECASE)
         if output is None:
+            _LOGGER.debug("Samsung TV pairing step 1 response did not include client hello")
             return False
         requestId = output.group(1)
         clientHello = output.group(2)
-        lastRequestId = int(requestId)
+        self._lastRequestId = int(requestId)
         return crypto.parseClientHello(clientHello, hello_output['hash'], hello_output['AES_key'], self.UserId)
 
     def AcknowledgeExchange(self, SKPrime):
@@ -69,18 +77,19 @@ class PySmartCrypto():
         thirdStepURL = self.GetFullRequestUri(2, self.AppId, self.deviceId)
         thirdStepResponse = requests.post(thirdStepURL, content).text
         if "secure-mode" in thirdStepResponse:
-            print("TODO: Implement handling of encryption flag!!!!")
-            sys.exit(-1)
-        output = re.search(r'ClientAckMsg.*?:.*?(\d[0-9a-zA-Z]*).*?session_id.*?(\d)', thirdStepResponse, flags=re.IGNORECASE)
+            raise PairingError("TV requested secure-mode pairing, which is not implemented")
+        output = re.search(r'ClientAckMsg.*?:.*?([0-9a-f]+).*?session_id.*?(\d+)', thirdStepResponse, flags=re.IGNORECASE)
         if output is None:
-            print("Unable to get session_id and/or ClientAckMsg!!!");
-            sys.exit(-1)
+            _LOGGER.debug(
+                "Samsung TV pairing step 2 response did not include session id or client ack: %s",
+                thirdStepResponse,
+            )
+            raise PairingError("TV did not return session_id and ClientAckMsg")
         clientAck = output.group(1)
         if not crypto.parseClientAcknowledge(clientAck, SKPrime):
-            print("Parse client ac message failed.")
-            sys.exit(-1)
+            raise PairingError("TV returned an invalid ClientAckMsg")
         sessionId=output.group(2)
-        print("sessionId: "+sessionId)
+        _LOGGER.debug("Samsung TV pairing returned session id")
         return sessionId
 
     def ClosePinPageOnTv(self):
@@ -180,5 +189,5 @@ class PySmartCrypto():
         self._aesLib = AESCipher(self._token.upper(), self._sessionid)
 
         if command is not None:
-            print('Attempting to send command to tv')
+            _LOGGER.debug("Attempting to send command to TV")
             self.control(command)

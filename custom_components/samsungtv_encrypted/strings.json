@@ -22,7 +22,8 @@
     },
     "error": {
       "cannot_connect": "Could not connect to the TV.",
-      "invalid_pin": "The PIN was not accepted."
+      "invalid_pin": "The PIN was not accepted.",
+      "pairing_failed": "The TV did not complete pairing."
     },
     "abort": {
       "already_configured": "This TV is already configured."
