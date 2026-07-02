@@ -55,7 +55,7 @@ class PySmartCrypto():
         secondStepURL = self.GetFullRequestUri(1, self.AppId, self.deviceId)
         secondStepResponse = requests.post(secondStepURL, content).text
         print('secondStepResponse: ' + secondStepResponse)
-        output = re.search('request_id.*?(\d).*?GeneratorClientHello.*?:.*?(\d[0-9a-zA-Z]*)', secondStepResponse, flags=re.IGNORECASE)
+        output = re.search(r'request_id.*?(\d).*?GeneratorClientHello.*?:.*?(\d[0-9a-zA-Z]*)', secondStepResponse, flags=re.IGNORECASE)
         if output is None:
             return False
         requestId = output.group(1)
@@ -71,7 +71,7 @@ class PySmartCrypto():
         if "secure-mode" in thirdStepResponse:
             print("TODO: Implement handling of encryption flag!!!!")
             sys.exit(-1)
-        output = re.search('ClientAckMsg.*?:.*?(\d[0-9a-zA-Z]*).*?session_id.*?(\d)', thirdStepResponse, flags=re.IGNORECASE)
+        output = re.search(r'ClientAckMsg.*?:.*?(\d[0-9a-zA-Z]*).*?session_id.*?(\d)', thirdStepResponse, flags=re.IGNORECASE)
         if output is None:
             print("Unable to get session_id and/or ClientAckMsg!!!");
             sys.exit(-1)
@@ -112,13 +112,41 @@ class PySmartCrypto():
 
     def close(self):
         """Close the connection."""
+        if hasattr(self, "_timer"):
+            self._timer.cancel()
         self._connection.close()
+
+    @classmethod
+    def start_pairing(cls, host, port):
+        pairing = cls.__new__(cls)
+        pairing._lastRequestId = 0
+        pairing._host = host
+        pairing._port = str(port)
+        pairing._connection = pairing.connect()
+        pairing._timer = threading.Timer(120, pairing.disconnectCallback)
+        pairing._timer.start()
+        pairing.StartPairing()
+        return pairing
+
+    def finish_pairing(self, pin):
+        self.FirstStepOfPairing()
+        output = self.HelloExchange(pin)
+        if not output:
+            return None
+
+        token = output['ctx'].hex()
+        sessionid = self.AcknowledgeExchange(output['SKPrime'])
+        self.ClosePinPageOnTv()
+        self._token = token
+        self._sessionid = sessionid
+        self._aesLib = AESCipher(self._token.upper(), self._sessionid)
+        return {"token": token, "sessionid": str(sessionid)}
 
     def __init__(self, host, port, token=None, sessionid=None, command=None):
         self._lastRequestId = 0
 
         self._host = host
-        self._port = port
+        self._port = str(port)
         self._connection = self.connect()
 
         self._timer = threading.Timer(10, self.disconnectCallback)

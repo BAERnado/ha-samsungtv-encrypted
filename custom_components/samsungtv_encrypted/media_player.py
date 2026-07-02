@@ -167,6 +167,40 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         _LOGGER.info("Ignoring duplicate Samsung TV %s:%d", host, port)
 
 
+async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up the Samsung TV platform from a config entry."""
+    data = entry.data
+    host = data[CONF_HOST]
+    port = data.get(CONF_PORT, DEFAULT_PORT)
+    name = data.get(CONF_NAME, DEFAULT_NAME)
+    mac = data.get(CONF_MAC)
+    token = data.get(CONF_TOKEN)
+    sessionid = data.get(CONF_SESSIONID)
+    key_power_off = data.get(CONF_KEY_POWER_OFF, DEFAULT_KEY_POWER_OFF)
+
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        host = await hass.async_add_executor_job(socket.gethostbyname, host)
+
+    async_add_entities([
+        SamsungTVDevice(
+            host,
+            port,
+            name,
+            DEFAULT_TIMEOUT,
+            mac,
+            entry.unique_id,
+            token,
+            sessionid,
+            key_power_off,
+            None,
+            None,
+        )
+    ])
+    _LOGGER.info("Samsung TV %s:%d added as '%s' from config entry", host, port, name)
+
+
 class SamsungTVDevice(MediaPlayerEntity):
     """Representation of a Samsung TV."""
 

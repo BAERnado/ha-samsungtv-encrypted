@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SamsungTV Encrypted",
+        "description": "Turn on the TV, then enter its network details. The next step asks for the PIN shown on the TV.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "name": "Name",
+          "mac": "MAC address",
+          "key_power_off": "Power off key"
+        }
+      },
+      "pin": {
+        "title": "Enter TV PIN",
+        "description": "Enter the PIN displayed on the TV.",
+        "data": {
+          "pin": "PIN"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the TV.",
+      "invalid_pin": "The PIN was not accepted."
+    },
+    "abort": {
+      "already_configured": "This TV is already configured."
+    }
+  }
+}

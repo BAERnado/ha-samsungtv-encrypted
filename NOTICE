@@ -18,3 +18,9 @@ Change tracking policy for this fork:
   or record the changed file and purpose in this NOTICE file.
 - Keep existing copyright, license, patent, trademark, and attribution notices unless
   they no longer apply to the changed material.
+
+Changes recorded 2026-07-02:
+- Added Home Assistant config flow support for pairing through the UI.
+- Updated component setup so config entries create the media player entity.
+- Added pycryptodome as the explicit provider for the Crypto module.
+- Adjusted PySmartCrypto pairing so token creation can run without stdin.
