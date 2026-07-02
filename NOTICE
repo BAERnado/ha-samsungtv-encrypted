@@ -1,0 +1,20 @@
+SamsungTV Encrypted Home Assistant custom component
+
+This repository is a fork of:
+https://github.com/sermayoral/ha-samsungtv-encrypted
+
+The project is licensed under the Apache License, Version 2.0.
+
+Current local baseline, recorded 2026-07-02:
+- Forked Home Assistant custom component for encrypted Samsung TV control.
+- Intended local target includes Samsung Orsay TVs, specifically a Samsung UE55H6290.
+- Desired functions include HDMI source selection, volume control, and power control.
+- Upstream README, manifest metadata, and source attribution still identify the original
+  project and maintainer where applicable.
+
+Change tracking policy for this fork:
+- Keep this NOTICE file with distributed copies of the project.
+- When changing an existing source file, add a clear modification notice in that file
+  or record the changed file and purpose in this NOTICE file.
+- Keep existing copyright, license, patent, trademark, and attribution notices unless
+  they no longer apply to the changed material.
