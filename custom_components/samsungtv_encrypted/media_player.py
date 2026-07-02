@@ -195,7 +195,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the Samsung TV platform from a config entry."""
-    data = entry.data
+    data = {**entry.data, **entry.options}
     host = data[CONF_HOST]
     port = data.get(CONF_PORT, DEFAULT_PORT)
     name = data.get(CONF_NAME, DEFAULT_NAME)

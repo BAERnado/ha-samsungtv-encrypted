@@ -23,10 +23,25 @@
     "error": {
       "cannot_connect": "Could not connect to the TV.",
       "invalid_pin": "The PIN was not accepted.",
-      "pairing_failed": "The TV did not complete pairing."
+      "pairing_failed": "The TV did not complete pairing.",
+      "mac_not_found": "No MAC address was found in the ARP cache. Turn on the TV and try again, or enter the MAC address manually."
     },
     "abort": {
       "already_configured": "This TV is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SamsungTV Encrypted",
+        "description": "Set the TV MAC address for Wake-on-LAN. Leave it empty to try detecting it from the ARP cache while the TV is on.",
+        "data": {
+          "mac": "MAC address"
+        }
+      }
+    },
+    "error": {
+      "mac_not_found": "No MAC address was found in the ARP cache. Turn on the TV and try again, or enter the MAC address manually."
     }
   }
 }

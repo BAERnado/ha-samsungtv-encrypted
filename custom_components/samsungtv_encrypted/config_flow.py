@@ -7,6 +7,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_MAC, CONF_NAME, CONF_PORT
 
 from . import DOMAIN
+from .network import get_arp_mac
 from .PySmartCrypto.pysmartcrypto import PairingError, PySmartCrypto
 
 _LOGGER = logging.getLogger(__name__)
@@ -96,6 +97,14 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors["base"] = "invalid_pin"
                 else:
                     self._pairing.close()
+                    if not self._mac:
+                        self._mac = await self.hass.async_add_executor_job(
+                            get_arp_mac, self._host
+                        )
+                        if self._mac:
+                            _LOGGER.info(
+                                "Detected Samsung TV MAC address from ARP cache"
+                            )
                     return self.async_create_entry(
                         title=self._name,
                         data={
@@ -112,5 +121,41 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="pin",
             data_schema=vol.Schema({vol.Required(CONF_PIN): str}),
+            errors=errors,
+        )
+
+    @staticmethod
+    def async_get_options_flow(config_entry):
+        """Return the options flow."""
+        return SamsungTVEncryptedOptionsFlow(config_entry)
+
+
+class SamsungTVEncryptedOptionsFlow(config_entries.OptionsFlow):
+    """Handle SamsungTV Encrypted options."""
+
+    def __init__(self, config_entry):
+        """Initialize options flow."""
+        self._config_entry = config_entry
+
+    async def async_step_init(self, user_input=None):
+        """Manage Samsung TV options."""
+        errors = {}
+        data = {**self._config_entry.data, **self._config_entry.options}
+        host = data[CONF_HOST]
+        mac = data.get(CONF_MAC) or ""
+
+        if user_input is not None:
+            mac = user_input.get(CONF_MAC) or ""
+            if not mac:
+                mac = await self.hass.async_add_executor_job(get_arp_mac, host) or ""
+                if not mac:
+                    errors["base"] = "mac_not_found"
+
+            if not errors:
+                return self.async_create_entry(title="", data={CONF_MAC: mac})
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({vol.Optional(CONF_MAC, default=mac): str}),
             errors=errors,
         )
