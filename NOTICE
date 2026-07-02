@@ -28,3 +28,4 @@ Changes recorded 2026-07-02:
 - Replaced pairing sys.exit calls with handled errors so Home Assistant is not stopped.
 - Removed secret pairing values from default Home Assistant logs.
 - Added ARP-cache MAC detection and an options flow for Wake-on-LAN setup.
+- Added read-only diagnostic sensors for configured host, port, and MAC address.

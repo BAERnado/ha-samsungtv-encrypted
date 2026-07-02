@@ -1,7 +1,7 @@
 """The samsungtv component for encrypted models."""
 
 DOMAIN = "samsungtv_encrypted"
-PLATFORMS = ["media_player"]
+PLATFORMS = ["media_player", "sensor"]
 
 
 async def async_setup_entry(hass, entry):
