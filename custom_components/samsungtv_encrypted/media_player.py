@@ -268,7 +268,6 @@ class SamsungTVDevice(MediaPlayerEntity):
             "turn_on_action": turn_on_action,
         }
         self._sourcelist = {}
-        self._source_connection_states = {}
         self._selected_source = None
         self._urns = ('urn:schemas-upnp-org:service:RenderingControl:1', 'urn:samsung.com:service:MainTVAgent2:1')
         self._upnp_paths = None  # a tuple with upnp paths ('/_smp17_', '/_smp4_')
@@ -356,7 +355,6 @@ class SamsungTVDevice(MediaPlayerEntity):
         _LOGGER.debug("function _set_state_off")
         self._state = STATE_OFF
         self._sourcelist = {}
-        self._source_connection_states = {}
         self._selected_source = None
         self._upnp_paths = None
         self._upnp_ports = None
@@ -386,13 +384,6 @@ class SamsungTVDevice(MediaPlayerEntity):
     def source_list(self):
         """List of available input sources."""
         return list(self._sourcelist.keys())
-
-    @property
-    def extra_state_attributes(self):
-        """Return entity specific state attributes."""
-        return {
-            "source_connection_states": self._source_connection_states,
-        }
 
     @property
     def state(self):
@@ -640,30 +631,14 @@ class SamsungTVDevice(MediaPlayerEntity):
             source_ids = self.SendSOAP(self._upnp_ports[1], self._upnp_paths[1], self._urns[1], 'GetSourceList', '', 'id')
             if source_ids:
                 sources_connected = self.SendSOAP(self._upnp_ports[1], self._upnp_paths[1], self._urns[1], 'GetSourceList', '', 'connected')
-                source_names = self._as_list(source_names)
-                source_ids = self._as_list(source_ids)
-                sources_connected = self._as_list(sources_connected)
-                if len(source_ids) > len(source_names):
-                    del source_ids[0]
                 if sources_connected:
-                    self._source_connection_states = dict(
-                        zip(source_names, sources_connected)
-                    )
-                    _LOGGER.debug(
-                        "Samsung TV source connection states: %s",
-                        self._source_connection_states,
-                    )
-                else:
-                    self._source_connection_states = {}
-                sources = dict(zip(source_names, source_ids))
+                    del source_ids[0]
+                    j = 0;
+                    for i in range(len(sources_connected)):
+                        if sources_connected[i].lower() != 'yes':
+                            del source_names[i - j]
+                            del source_ids[i - j]
+                            j = j + 1
+                    sources = dict(zip(source_names, source_ids))
         _LOGGER.debug('Sourcelist available is {}'.format(sources))
         return sources
-
-    @staticmethod
-    def _as_list(value):
-        """Return value as list."""
-        if value is None:
-            return []
-        if isinstance(value, list):
-            return value
-        return [value]
