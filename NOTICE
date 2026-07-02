@@ -24,3 +24,4 @@ Changes recorded 2026-07-02:
 - Updated component setup so config entries create the media player entity.
 - Added pycryptodome as the explicit provider for the Crypto module.
 - Adjusted PySmartCrypto pairing so token creation can run without stdin.
+- Updated media player imports for newer Home Assistant media player APIs.

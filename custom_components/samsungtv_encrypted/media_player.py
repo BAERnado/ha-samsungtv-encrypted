@@ -13,26 +13,52 @@ from .PySmartCrypto.pysmartcrypto import PySmartCrypto
 from bs4 import BeautifulSoup
 from netdisco.ssdp import scan
 
-from homeassistant.components.media_player import MediaPlayerEntity, PLATFORM_SCHEMA, DEVICE_CLASS_TV
-from homeassistant.components.media_player.const import (
-    MEDIA_TYPE_CHANNEL,
-    SUPPORT_NEXT_TRACK,
-    SUPPORT_PAUSE,
-    SUPPORT_PLAY,
-    SUPPORT_PLAY_MEDIA,
-    SUPPORT_PREVIOUS_TRACK,
-    SUPPORT_SELECT_SOURCE,
-    SUPPORT_TURN_OFF,
-    SUPPORT_TURN_ON,
-    SUPPORT_VOLUME_MUTE,
-    SUPPORT_VOLUME_STEP,
-    SUPPORT_VOLUME_SET,
-    MEDIA_TYPE_URL,
-    MEDIA_TYPE_VIDEO,
-    MEDIA_TYPE_PLAYLIST,
-    MEDIA_TYPE_MUSIC,
-    MEDIA_TYPE_APP
-)
+try:
+    from homeassistant.components.media_player import (
+        MediaPlayerDeviceClass,
+        MediaPlayerEntity,
+        MediaPlayerEntityFeature,
+        PLATFORM_SCHEMA,
+    )
+
+    DEVICE_CLASS_TV = MediaPlayerDeviceClass.TV
+    SUPPORT_NEXT_TRACK = MediaPlayerEntityFeature.NEXT_TRACK
+    SUPPORT_PAUSE = MediaPlayerEntityFeature.PAUSE
+    SUPPORT_PLAY = MediaPlayerEntityFeature.PLAY
+    SUPPORT_PLAY_MEDIA = MediaPlayerEntityFeature.PLAY_MEDIA
+    SUPPORT_PREVIOUS_TRACK = MediaPlayerEntityFeature.PREVIOUS_TRACK
+    SUPPORT_SELECT_SOURCE = MediaPlayerEntityFeature.SELECT_SOURCE
+    SUPPORT_TURN_OFF = MediaPlayerEntityFeature.TURN_OFF
+    SUPPORT_TURN_ON = MediaPlayerEntityFeature.TURN_ON
+    SUPPORT_VOLUME_MUTE = MediaPlayerEntityFeature.VOLUME_MUTE
+    SUPPORT_VOLUME_STEP = MediaPlayerEntityFeature.VOLUME_STEP
+    SUPPORT_VOLUME_SET = MediaPlayerEntityFeature.VOLUME_SET
+except ImportError:
+    from homeassistant.components.media_player import (
+        DEVICE_CLASS_TV,
+        MediaPlayerEntity,
+        PLATFORM_SCHEMA,
+    )
+    from homeassistant.components.media_player.const import (
+        SUPPORT_NEXT_TRACK,
+        SUPPORT_PAUSE,
+        SUPPORT_PLAY,
+        SUPPORT_PLAY_MEDIA,
+        SUPPORT_PREVIOUS_TRACK,
+        SUPPORT_SELECT_SOURCE,
+        SUPPORT_TURN_OFF,
+        SUPPORT_TURN_ON,
+        SUPPORT_VOLUME_MUTE,
+        SUPPORT_VOLUME_STEP,
+        SUPPORT_VOLUME_SET,
+    )
+
+try:
+    from homeassistant.components.media_player.const import MEDIA_TYPE_CHANNEL
+except ImportError:
+    from homeassistant.components.media_player.const import MediaType
+
+    MEDIA_TYPE_CHANNEL = MediaType.CHANNEL
 from homeassistant.const import (
     CONF_HOST,
     CONF_MAC,
