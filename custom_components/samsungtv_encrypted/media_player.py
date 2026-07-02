@@ -631,14 +631,25 @@ class SamsungTVDevice(MediaPlayerEntity):
             source_ids = self.SendSOAP(self._upnp_ports[1], self._upnp_paths[1], self._urns[1], 'GetSourceList', '', 'id')
             if source_ids:
                 sources_connected = self.SendSOAP(self._upnp_ports[1], self._upnp_paths[1], self._urns[1], 'GetSourceList', '', 'connected')
-                if sources_connected:
+                source_names = self._as_list(source_names)
+                source_ids = self._as_list(source_ids)
+                sources_connected = self._as_list(sources_connected)
+                if len(source_ids) > len(source_names):
                     del source_ids[0]
-                    j = 0;
-                    for i in range(len(sources_connected)):
-                        if sources_connected[i].lower() != 'yes':
-                            del source_names[i - j]
-                            del source_ids[i - j]
-                            j = j + 1
-                    sources = dict(zip(source_names, source_ids))
-        _LOGGER.debug('Sourcelist available is '.format(sources))
+                if sources_connected:
+                    _LOGGER.debug(
+                        "Samsung TV source connection states: %s",
+                        dict(zip(source_names, sources_connected)),
+                    )
+                sources = dict(zip(source_names, source_ids))
+        _LOGGER.debug('Sourcelist available is {}'.format(sources))
         return sources
+
+    @staticmethod
+    def _as_list(value):
+        """Return value as list."""
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return value
+        return [value]
