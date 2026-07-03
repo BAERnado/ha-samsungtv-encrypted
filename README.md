@@ -1,5 +1,5 @@
-[![](https://img.shields.io/github/release/sermayoral/ha-samsungtv-encrypted/all.svg?style=for-the-badge)](https://github.com/sermayoral/ha-samsungtv-encrypted/releases)
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![](https://img.shields.io/github/release/BAERnado/ha-samsungtv-encrypted/all.svg?style=for-the-badge)](https://github.com/BAERnado/ha-samsungtv-encrypted/releases)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://www.hacs.xyz/)
 [![](https://img.shields.io/github/license/sermayoral/ha-samsungtv-encrypted?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/badge/MAINTAINER-%40sermayoral-red?style=for-the-badge)](https://github.com/sermayoral)
 [![](https://img.shields.io/badge/COMMUNITY-FORUM-success?style=for-the-badge)](https://community.home-assistant.io)
@@ -13,9 +13,11 @@ some extra features.
 
 # Installation (There are two methods, with HACS or manual)
 
-### 1. Easy Mode
+### 1. HACS custom repository
 
-We support [HACS](https://hacs.netlify.com/). Go to "STORE", search "SamsungTV Encrypted SSDP" and install.
+This integration can be installed through [HACS](https://www.hacs.xyz/) as a custom repository. Add
+`https://github.com/BAERnado/ha-samsungtv-encrypted` as an integration repository, then install
+**SamsungTV Encrypted SSDP** from HACS.
 
 ### 2. Manual
 
