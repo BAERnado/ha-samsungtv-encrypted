@@ -1,7 +1,7 @@
 [![](https://img.shields.io/github/release/BAERnado/ha-samsungtv-encrypted/all.svg?style=for-the-badge)](https://github.com/BAERnado/ha-samsungtv-encrypted/releases)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://www.hacs.xyz/)
-[![](https://img.shields.io/github/license/sermayoral/ha-samsungtv-encrypted?style=for-the-badge)](LICENSE)
-[![](https://img.shields.io/badge/MAINTAINER-%40sermayoral-red?style=for-the-badge)](https://github.com/sermayoral)
+[![](https://img.shields.io/github/license/BAERnado/ha-samsungtv-encrypted?style=for-the-badge)](LICENSE)
+[![](https://img.shields.io/badge/MAINTAINER-%40BAERnado-red?style=for-the-badge)](https://github.com/BAERnado)
 [![](https://img.shields.io/badge/COMMUNITY-FORUM-success?style=for-the-badge)](https://community.home-assistant.io)
 
 # HomeAssistant - SamsungTV Encrypted SSDP Component
@@ -10,6 +10,9 @@ This is a custom component to allow control of Encrypted SamsungTV devices in [H
 This should work on H and J 2014/2015 models (according to [PySmartCrypto](https://github.com/eclair4151/SmartCrypto)
 specs). Is a modified version of the built-in [samsungtv](https://www.home-assistant.io/integrations/samsungtv/), with
 some extra features.
+
+This maintained fork targets Samsung Orsay encrypted TVs and adds modern Home Assistant UI setup, SSDP discovery, HACS
+validation, and Hassfest validation while preserving attribution to the original project.
 
 # Installation (There are two methods, with HACS or manual)
 
