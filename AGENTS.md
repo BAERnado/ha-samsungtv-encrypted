@@ -31,7 +31,7 @@ Not lazy about: input validation at trust boundaries, error handling that preven
 - project shall provide a custom_component for Home Assistant, installable via HACS
 - project is intended to allow remote control of Samsung TVs running on Samsung Orsay
 - specifically a Samsung UE55H6290 is found locally and shall be controllable
-- it is wanted to provide access to set HDMI source, volume, turning on and off
+- it is wanted to provide access to set HDMI source, volume, turning on and off and if possible all other keys
 
 ## Project Information
 - Project is a fork of https://github.com/sermayoral/ha-samsungtv-encrypted
@@ -41,6 +41,7 @@ Not lazy about: input validation at trust boundaries, error handling that preven
 
 ## Environment
 - AddOns custom_component will be pulled on home assistant and run, logs will then be provided via chat or file
+- if dependencies to work properly and efficiently are missing on the host system, ask user to install packages according to the system's OS
 
 ## Git Delivery
 - Git delivery is mandatory for completed development work: create a meaningful commit and push to `origin/master` so every stage remains recoverable.

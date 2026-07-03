@@ -185,6 +185,8 @@ Feel free to contribute with other working models and to submit fixes and improv
 Recent maintenance of this fork used AI-assisted development with human review, local checks, and hardware feedback from
 real Home Assistant testing. Changes are recorded in `NOTICE`.
 
+# Note from sermayoral (previous integration developer)
+
 If you like this custom component and it is useful for you, please consider supporting me:
 
 <a href="https://www.buymeacoffee.com/XAF0dnBOG" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
