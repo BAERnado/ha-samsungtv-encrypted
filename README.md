@@ -42,66 +42,96 @@ After a correct installation, your configuration directory should look like the 
 
 # Configuration
 
-1. Use get_token.py to get your Samsung TV token (use --port 8080). Store TOKEN (CTX) and SESSION_ID output. Your TV 
-must be turned on and connected to Internet with the specific IP. Terminal where you have executed get_token.py will 
-ask for a PIN, that will be showed in your TV screen.  
-**Note**: In some models the TOKEN can expire after a time (maybe a week, month), or even the TOKEN can be invalidated 
-due to a loss of TV power. In that case you have to repeat this process again.
-2. Enable the component by editing the configuration.yaml file (within the config directory as well).
-Edit it by adding the following lines:
-    ### Example configuration.yaml
-    ```
-    media_player:
-      - platform: samsungtv_encrypted
-        host: IP_ADDRESS
-        token: TOKEN
-        sessionid: SESSION_ID
-        port: 8080
-    ```
-    **Note**: This is the same as the configuration for the built-in 
-    [Samsung Smart TV](https://www.home-assistant.io/integrations/samsungtv/) component, except for the custom variables.
+## Recommended: Home Assistant UI
 
-    ### Custom variables
+1. Install the integration and restart Home Assistant.
+2. Keep the TV turned on and reachable on the network.
+3. Go to **Settings -> Devices & services**.
+4. If Home Assistant discovers the TV, select the discovered SamsungTV Encrypted device.
+5. If discovery does not find the TV, use **Add integration -> SamsungTV Encrypted** and enter the host/IP and port.
+6. Enter the PIN shown on the TV when Home Assistant asks for it.
 
-    - **token:** (string) (Required) This contains the token of your encrypted TV (got in step 1)<br>
+The integration stores the encrypted token and session id in Home Assistant's config entry. Running `get_token.py`
+manually is no longer needed for the normal setup path.
 
-    - **sessionid:** (string) (Required) This contains the sessionid of your encrypted TV (got in step 1)<br>
+The TV name is taken from SSDP/UPnP discovery when available. The MAC address is detected from the local ARP cache
+after the TV has been contacted and is exposed as a diagnostic sensor. It is not required for normal control.
 
-    - **key_power_off:** (string) (Optional) Some TV models use an encrypted command to turn off the TV different from 
-    the command that we use by default. If this is your case, try using other encrypted commands, like 'KEY_POWER' here.
-    <br>Default value: 'KEY_POWEROFF'
+## Legacy: get_token.py and YAML
 
-    - **turn_on_action:** (script) (Optional) Script formatted command to turn on the TV. Example:
-      ```
-      - platform: samsungtv_encrypted
-        ...
-        turn_on_action:
-          - service: kodi.call_method
-            data:
-              entity_id: media_player.kodi
-              method: Addons.ExecuteAddon
-              addonid: script.json-cec
-              params:
-                command: turn_on 0
-      ```
+The old setup path is still available for installations that prefer YAML or need custom script actions.
 
-    - **turn_off_action:** (script) (Optional) Script formatted command to turn off the TV. Example:
-      ```
-      - platform: samsungtv_encrypted
-        ...
-        turn_off_action:
-          - service: switch.turn_on
-            target:
-              entity_id: switch.samsung_tv_power
-      ```
-      <br>
-    
-2. Reboot Home Assistant
-3. Congrats! You're all set!
+1. Use `get_token.py` to get your Samsung TV token (use `--port 8080`). Store TOKEN (CTX) and SESSION_ID output. Your TV
+must be turned on and connected to the network with the specific IP. The terminal where you executed `get_token.py` will
+ask for the PIN shown on the TV.
+
+**Note**: In some models the TOKEN can expire after a time (maybe a week, month), or even be invalidated due to a loss of
+TV power. In that case you have to repeat this process again.
+
+2. Enable the component by editing `configuration.yaml`:
+
+### Example configuration.yaml
+
+```yaml
+media_player:
+  - platform: samsungtv_encrypted
+    host: IP_ADDRESS
+    token: TOKEN
+    sessionid: SESSION_ID
+    port: 8080
+```
+
+**Note**: This is the same as the configuration for the built-in
+[Samsung Smart TV](https://www.home-assistant.io/integrations/samsungtv/) component, except for the custom variables.
+
+### Custom variables
+
+- **token:** (string) (Required) This contains the token of your encrypted TV.
+- **sessionid:** (string) (Required) This contains the session id of your encrypted TV.
+- **key_power_off:** (string) (Optional) Some TV models use an encrypted command to turn off the TV different from the
+  command used by default. Try `KEY_POWER` here if `KEY_POWEROFF` does not work.
+  <br>Default value: `KEY_POWEROFF`
+- **turn_on_action:** (script) (Optional) Script formatted command to turn on the TV.
+- **turn_off_action:** (script) (Optional) Script formatted command to turn off the TV.
+
+Example `turn_on_action`:
+
+```yaml
+- platform: samsungtv_encrypted
+  ...
+  turn_on_action:
+    - service: kodi.call_method
+      data:
+        entity_id: media_player.kodi
+        method: Addons.ExecuteAddon
+        addonid: script.json-cec
+        params:
+          command: turn_on 0
+```
+
+Example `turn_off_action`:
+
+```yaml
+- platform: samsungtv_encrypted
+  ...
+  turn_off_action:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.samsung_tv_power
+```
 
 # Additional Features
 
-### 1. Send Keys
+### Source selection
+
+The integration exposes the TV-reported `source` and `source_list` through the Home Assistant media player entity.
+Only sources reported by the TV as connected are offered for selection.
+
+### Diagnostic sensors
+
+The integration also exposes read-only diagnostic sensors for the configured host, port, and detected MAC address.
+
+### Send Keys
 
 Send keys using a native Home Assistant service:
 
@@ -151,6 +181,9 @@ tv_channel_down:
 # Contribution
 
 Feel free to contribute with other working models and to submit fixes and improvements to the code.
+
+Recent maintenance of this fork used AI-assisted development with human review, local checks, and hardware feedback from
+real Home Assistant testing. Changes are recorded in `NOTICE`.
 
 If you like this custom component and it is useful for you, please consider supporting me:
 
