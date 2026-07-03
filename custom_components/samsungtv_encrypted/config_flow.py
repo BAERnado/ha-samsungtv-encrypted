@@ -69,7 +69,6 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._host = user_input[CONF_HOST]
             self._port = user_input.get(CONF_PORT, DEFAULT_PORT)
-            self._name = user_input.get(CONF_NAME, DEFAULT_NAME)
             self._key_power_off = user_input.get(
                 CONF_KEY_POWER_OFF, DEFAULT_KEY_POWER_OFF
             )
@@ -93,7 +92,6 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(CONF_HOST): str,
                     vol.Optional(CONF_PORT, default=self._port): int,
-                    vol.Optional(CONF_NAME, default=self._name): str,
                     vol.Optional(
                         CONF_KEY_POWER_OFF, default=self._key_power_off
                     ): str,
