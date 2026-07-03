@@ -131,6 +131,15 @@ def _xml_child_text(element, tag_name):
         if _local_xml_name(child.tag) == target:
             return child.text
     return None
+
+
+def _key_chain_delay_ms(key):
+    """Return delay milliseconds for numeric key chain tokens."""
+    if key.isdigit() or (key.startswith("-") and key[1:].isdigit()):
+        return int(key)
+    return None
+
+
 MIN_TIME_BETWEEN_FORCED_SCANS = timedelta(seconds=2)
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=10)
 
@@ -552,18 +561,21 @@ class SamsungTVDevice(MediaPlayerEntity):
             if len(keys) > 1:
                 _LOGGER.debug("Sending Samsung TV key chain: %s", keys)
             for index, key in enumerate(keys):
-                if key.isdigit():
-                    delay_ms = int(key)
-                    if delay_ms > MAX_KEY_CHAIN_DELAY_MS:
+                delay_ms = _key_chain_delay_ms(key)
+                if delay_ms is not None:
+                    if delay_ms < 0 or delay_ms > MAX_KEY_CHAIN_DELAY_MS:
                         _LOGGER.error(
-                            "Key chain delay must not exceed %d ms",
+                            "Key chain delay must be between 0 and %d ms",
                             MAX_KEY_CHAIN_DELAY_MS,
                         )
                         return
                     await asyncio.sleep(delay_ms / 1000)
                     continue
                 await self.hass.async_add_job(self.send_key, key)
-                if index < len(keys) - 1 and not keys[index + 1].isdigit():
+                if (
+                    index < len(keys) - 1
+                    and _key_chain_delay_ms(keys[index + 1]) is None
+                ):
                     await asyncio.sleep(self._key_press_delay)
         else:
             _LOGGER.error("Unsupported media type")
