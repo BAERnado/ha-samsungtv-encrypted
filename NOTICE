@@ -44,3 +44,4 @@ Changes recorded 2026-07-03:
 - Added @BAERnado as code owner and updated the displayed integration name for fork differentiation.
 - Renamed the displayed integration name to SamsungTV Encrypted SSDP and released fork version 2026.7.7.
 - Replaced BeautifulSoup XML parsing with stdlib XML parsing for SOAP/SSDP responses and released fork version 2026.7.8.
+- Added send_key key chaining through media_player.play_media and released fork version 2026.7.9.

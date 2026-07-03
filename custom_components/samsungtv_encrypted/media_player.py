@@ -89,6 +89,7 @@ CONF_SESSIONID = "sessionid"
 CONF_KEY_POWER_OFF = "key_power_off"
 CONF_TURN_ON_ACTION = "turn_on_action"
 CONF_TURN_OFF_ACTION = "turn_off_action"
+KEY_CHAIN_SEPARATOR = "+"
 
 
 def _local_xml_name(tag):
@@ -522,10 +523,23 @@ class SamsungTVDevice(MediaPlayerEntity):
 
             for digit in media_id:
                 await self.hass.async_add_job(self.send_key, "KEY_" + digit)
-                await asyncio.sleep(KEY_PRESS_TIMEOUT, self.hass.loop)
+                await asyncio.sleep(KEY_PRESS_TIMEOUT)
             await self.hass.async_add_job(self.send_key, "KEY_ENTER")
         elif media_type == MEDIA_TYPE_KEY:
-            self.send_key(media_id)
+            keys = [
+                key.strip()
+                for key in str(media_id).split(KEY_CHAIN_SEPARATOR)
+                if key.strip()
+            ]
+            if not keys:
+                _LOGGER.error("Media ID must contain at least one key")
+                return
+            if len(keys) > 1:
+                _LOGGER.debug("Sending Samsung TV key chain: %s", keys)
+            for index, key in enumerate(keys):
+                await self.hass.async_add_job(self.send_key, key)
+                if index < len(keys) - 1:
+                    await asyncio.sleep(KEY_PRESS_TIMEOUT)
         else:
             _LOGGER.error("Unsupported media type")
             return

@@ -148,6 +148,8 @@ service: media_player.play_media
 ```
 **Note**: Change "KEY_CODE" by desired key_code.
 
+Multiple keys can be sent sequentially by joining them with `+`, for example `KEY_VOLUP+KEY_CHUP`.
+
 You can get lots of key codes [here](https://github.com/roberodin/ha-samsungtv-custom#key-codes)
 
 Here you can see an example of a Home Assistant script using the media_player.play_media service:
