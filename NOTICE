@@ -37,3 +37,4 @@ Changes recorded 2026-07-03:
 - Removed manual name entry from the UI; discovered TVs use their UPnP name.
 - Deduplicated SSDP discovery by Samsung deviceID when multiple services announce the same TV.
 - Updated README for UI-based setup, legacy YAML setup, diagnostics, and AI-assisted maintenance disclosure.
+- Released fork version 2026.7.3.
