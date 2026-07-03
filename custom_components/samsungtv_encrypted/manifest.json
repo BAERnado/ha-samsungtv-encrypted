@@ -1,18 +1,18 @@
 {
   "domain": "samsungtv_encrypted",
   "name": "SamsungTV Encrypted SSDP",
-  "documentation": "https://github.com/BAERnado/ha-samsungtv-encrypted",
-  "issue_tracker": "https://github.com/BAERnado/ha-samsungtv-encrypted/issues",
-  "iot_class": "local_polling",
-  "requirements": ["wakeonlan>=1.1.6", "netdisco>=2.8.3", "pycryptodome>=3.20.0"],
-  "dependencies": ["ssdp"],
   "codeowners": ["@sermayoral", "@BAERnado"],
   "config_flow": true,
+  "dependencies": ["ssdp"],
+  "documentation": "https://github.com/BAERnado/ha-samsungtv-encrypted",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/BAERnado/ha-samsungtv-encrypted/issues",
+  "requirements": ["wakeonlan>=1.1.6", "netdisco>=2.8.3", "pycryptodome>=3.20.0"],
   "ssdp": [
     {"st": "urn:samsung.com:device:RemoteControlReceiver:1"},
     {"st": "urn:samsung.com:service:MainTVAgent2:1"},
     {"manufacturer": "Samsung", "st": "urn:schemas-upnp-org:service:RenderingControl:1"},
     {"manufacturer": "Samsung Electronics", "st": "urn:schemas-upnp-org:service:RenderingControl:1"}
   ],
-  "version": "2026.7.15"
+  "version": "2026.7.16"
 }

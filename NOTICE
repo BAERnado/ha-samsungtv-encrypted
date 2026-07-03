@@ -52,3 +52,4 @@ Changes recorded 2026-07-03:
 - Updated integration manifest links for HACS validation and released fork version 2026.7.13.
 - Added Hassfest GitHub Action for HACS default repository submission and released fork version 2026.7.14.
 - Fixed Hassfest manifest validation by declaring local polling and keeping the Home Assistant minimum version in hacs.json, then released fork version 2026.7.15.
+- Sorted integration manifest keys for Hassfest validation and released fork version 2026.7.16.
