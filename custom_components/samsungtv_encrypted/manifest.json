@@ -3,9 +3,15 @@
   "name": "SamsungTV Encrypted",
   "documentation": "https://github.com/sermayoral/ha-samsungtv-encrypted",
   "requirements": ["wakeonlan>=1.1.6", "beautifulsoup4>=4.6.0", "netdisco>=2.8.3", "pycryptodome>=3.20.0"],
-  "dependencies": [],
+  "dependencies": ["ssdp"],
   "codeowners": ["@sermayoral"],
   "config_flow": true,
+  "ssdp": [
+    {"st": "urn:samsung.com:device:RemoteControlReceiver:1"},
+    {"st": "urn:samsung.com:service:MainTVAgent2:1"},
+    {"manufacturer": "Samsung", "st": "urn:schemas-upnp-org:service:RenderingControl:1"},
+    {"manufacturer": "Samsung Electronics", "st": "urn:schemas-upnp-org:service:RenderingControl:1"}
+  ],
   "homeassistant": "2021.8.0",
   "version": "2022.3.1"
 }

@@ -18,6 +18,10 @@
         "data": {
           "pin": "PIN"
         }
+      },
+      "confirm": {
+        "title": "Set up {name}",
+        "description": "Set up discovered Samsung TV {name} at {host}. The next step asks for the PIN shown on the TV."
       }
     },
     "error": {

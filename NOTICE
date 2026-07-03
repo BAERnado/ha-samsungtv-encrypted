@@ -30,3 +30,6 @@ Changes recorded 2026-07-02:
 - Added ARP-cache MAC detection and an options flow for Wake-on-LAN setup.
 - Added read-only diagnostic sensors for configured host, port, and MAC address.
 - Restored source list filtering so only TV-reported connected sources are selectable.
+
+Changes recorded 2026-07-03:
+- Added SSDP discovery so Home Assistant can offer detected Samsung TVs for setup.

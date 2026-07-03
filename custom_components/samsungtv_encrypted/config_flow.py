@@ -1,5 +1,6 @@
 """Config flow for SamsungTV Encrypted."""
 import logging
+from urllib.parse import urlparse
 
 import voluptuous as vol
 
@@ -19,6 +20,32 @@ CONF_KEY_POWER_OFF = "key_power_off"
 DEFAULT_KEY_POWER_OFF = "KEY_POWEROFF"
 DEFAULT_NAME = "Samsung TV Remote"
 DEFAULT_PORT = 8080
+
+SSDP_UPNP_UDN = ("udn", "UDN")
+SSDP_UPNP_FRIENDLY_NAME = ("friendlyName", "friendly_name", "name")
+SSDP_UPNP_MODEL_NAME = ("modelName", "model_name")
+
+
+def _strip_uuid(value):
+    """Strip SSDP uuid prefix."""
+    return value.removeprefix("uuid:")
+
+
+def _discovery_attr(discovery_info, name, default=None):
+    """Read discovery data from modern service info objects or dicts."""
+    if isinstance(discovery_info, dict):
+        return discovery_info.get(name, default)
+    return getattr(discovery_info, name, default)
+
+
+def _upnp_value(upnp, keys, default=None):
+    """Read the first matching UPnP value."""
+    if not upnp:
+        return default
+    for key in keys:
+        if key in upnp:
+            return upnp[key]
+    return default
 
 
 class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -74,6 +101,56 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): str,
                 }
             ),
+            errors=errors,
+        )
+
+    async def async_step_ssdp(self, discovery_info):
+        """Handle a flow initialized by SSDP discovery."""
+        _LOGGER.debug("Samsung TV found via SSDP: %s", discovery_info)
+        location = _discovery_attr(discovery_info, "ssdp_location")
+        host = urlparse(location or "").hostname
+        if not host:
+            return self.async_abort(reason="cannot_connect")
+
+        upnp = _discovery_attr(discovery_info, "upnp", {}) or {}
+        name = _upnp_value(upnp, SSDP_UPNP_FRIENDLY_NAME)
+        model = _upnp_value(upnp, SSDP_UPNP_MODEL_NAME)
+        udn = _upnp_value(upnp, SSDP_UPNP_UDN)
+
+        self._host = host
+        self._port = DEFAULT_PORT
+        self._name = (name or model or DEFAULT_NAME).replace("[TV] ", "")
+        self._mac = await self.hass.async_add_executor_job(get_arp_mac, self._host)
+        self._key_power_off = DEFAULT_KEY_POWER_OFF
+
+        unique_id = _strip_uuid(udn) if udn else self._host
+        await self.async_set_unique_id(unique_id)
+        self._abort_if_unique_id_configured()
+
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(self, user_input=None):
+        """Confirm a discovered Samsung TV before pairing."""
+        errors = {}
+
+        if user_input is not None:
+            try:
+                self._pairing = await self.hass.async_add_executor_job(
+                    PySmartCrypto.start_pairing, self._host, self._port
+                )
+            except Exception:
+                _LOGGER.exception("Could not start Samsung TV pairing")
+                errors["base"] = "cannot_connect"
+            else:
+                return await self.async_step_pin()
+
+        self.context["title_placeholders"] = {"name": self._name}
+        return self.async_show_form(
+            step_id="confirm",
+            description_placeholders={
+                "name": self._name,
+                "host": self._host,
+            },
             errors=errors,
         )
 
