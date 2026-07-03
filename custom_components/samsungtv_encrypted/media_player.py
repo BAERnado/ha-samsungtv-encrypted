@@ -8,9 +8,9 @@ import wakeonlan
 import subprocess
 import urllib.request
 import ipaddress
+import xml.etree.ElementTree as ET
 
 from .PySmartCrypto.pysmartcrypto import PySmartCrypto
-from bs4 import BeautifulSoup
 from netdisco.ssdp import scan
 
 try:
@@ -89,6 +89,43 @@ CONF_SESSIONID = "sessionid"
 CONF_KEY_POWER_OFF = "key_power_off"
 CONF_TURN_ON_ACTION = "turn_on_action"
 CONF_TURN_OFF_ACTION = "turn_off_action"
+
+
+def _local_xml_name(tag):
+    """Return the local XML tag name without namespace."""
+    return tag.rsplit("}", 1)[-1].lower()
+
+
+def _xml_payload(response_xml):
+    """Strip HTTP headers before parsing the XML payload."""
+    xml_start = response_xml.find("<")
+    if xml_start < 0:
+        return response_xml
+    return response_xml[xml_start:]
+
+
+def _xml_root(response_xml):
+    """Parse XML with the stdlib parser."""
+    return ET.fromstring(_xml_payload(response_xml))
+
+
+def _xml_text_values(response_xml, tag_name):
+    """Find text values by XML local name, case-insensitively."""
+    target = tag_name.lower()
+    return [
+        element.text
+        for element in _xml_root(response_xml).iter()
+        if _local_xml_name(element.tag) == target and element.text is not None
+    ]
+
+
+def _xml_child_text(element, tag_name):
+    """Return the first direct child text matching a local XML name."""
+    target = tag_name.lower()
+    for child in element:
+        if _local_xml_name(child.tag) == target:
+            return child.text
+    return None
 MIN_TIME_BETWEEN_FORCED_SCANS = timedelta(seconds=2)
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=10)
 
@@ -551,7 +588,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.settimeout(2)
         client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        response_xml = ''
+        response_data = bytearray()
         _LOGGER.debug("Samsung TV sending: %s", soapRequest)
 
         try:
@@ -560,21 +597,24 @@ class SamsungTVDevice(MediaPlayerEntity):
             while True:
                 data_buffer = client.recv(4096)
                 if not data_buffer: break
-                response_xml += str(data_buffer)
+                response_data.extend(data_buffer)
         except socket.error as error:
             _LOGGER.debug('Error sending upnp soap request. Got {}'.format(error))
             return
+        finally:
+            client.close()
 
-        response_xml = self.xmlBytesToStr(bytes(response_xml, 'utf-8'))
+        response_xml = self.xmlBytesToStr(bytes(response_data))
         _LOGGER.debug("Samsung TV received: %s", response_xml)
         if XMLTag:
-            soup = BeautifulSoup(str(response_xml), 'lxml')
-            xml_values = soup.find_all(XMLTag)
-            xml_values_names = [xmlValue.string for xmlValue in xml_values]
-            if len(xml_values_names) == 1:
-                return xml_values_names[0]
-            else:
-                return xml_values_names
+            try:
+                xml_values = _xml_text_values(response_xml, XMLTag)
+            except ET.ParseError as error:
+                _LOGGER.debug("Could not parse Samsung TV SOAP response XML. Got %s", error)
+                return
+            if len(xml_values) == 1:
+                return xml_values[0]
+            return xml_values
         else:
             return response_xml[response_xml.find('<s:Envelope'):]
 
@@ -611,16 +651,21 @@ class SamsungTVDevice(MediaPlayerEntity):
             data = file.read()
             file.close()
             response_xml = self.xmlBytesToStr(data)
-            soup = BeautifulSoup(response_xml, 'lxml')
-            services = soup.find_all('service')
+            root = _xml_root(response_xml)
+            services = [
+                element for element in root.iter()
+                if _local_xml_name(element.tag) == "service"
+            ]
             for service in services:
-                upnp_service = service.find('servicetype').string
+                upnp_service = _xml_child_text(service, "serviceType")
                 if upnp_service == self._urns[i]:
-                    return service.find('controlurl').string
+                    return _xml_child_text(service, "controlURL")
         except (urllib.error.HTTPError, urllib.error.URLError) as error:
             _LOGGER.debug('Could not access at {}. Got {}'.format(url, error))
         except socket.timeout:
             _LOGGER.debug('Timeout accesing at {}'.format(url))
+        except ET.ParseError as error:
+            _LOGGER.debug('Could not parse SSDP device description at {}. Got {}'.format(url, error))
         return None
 
     def getSourceList(self):
