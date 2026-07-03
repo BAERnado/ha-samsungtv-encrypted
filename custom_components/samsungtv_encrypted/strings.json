@@ -7,7 +7,8 @@
         "data": {
           "host": "Host",
           "port": "Port",
-          "key_power_off": "Power off key"
+          "key_power_off": "Power off key",
+          "key_press_delay_ms": "Key press delay in milliseconds"
         }
       },
       "pin": {
@@ -29,6 +30,16 @@
     },
     "abort": {
       "already_configured": "This TV is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SamsungTV Encrypted SSDP options",
+        "data": {
+          "key_press_delay_ms": "Key press delay in milliseconds"
+        }
+      }
     }
   }
 }

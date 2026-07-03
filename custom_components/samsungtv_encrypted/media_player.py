@@ -79,7 +79,9 @@ DEFAULT_NAME = "Samsung TV Remote"
 DEFAULT_PORT = 8080
 DEFAULT_TIMEOUT = 2
 DEFAULT_KEY_POWER_OFF = "KEY_POWEROFF"
-KEY_PRESS_TIMEOUT = 1.2
+DEFAULT_KEY_PRESS_DELAY_MS = 500
+MIN_KEY_PRESS_DELAY_MS = 200
+MAX_KEY_PRESS_DELAY_MS = 2000
 KNOWN_DEVICES_KEY = "samsungtv_known_devices"
 # SOURCES = {"TV": "KEY_TV", "HDMI": "KEY_HDMI"}
 # CONF_SOURCELIST = "sourcelist"
@@ -89,6 +91,7 @@ CONF_SESSIONID = "sessionid"
 CONF_KEY_POWER_OFF = "key_power_off"
 CONF_TURN_ON_ACTION = "turn_on_action"
 CONF_TURN_OFF_ACTION = "turn_off_action"
+CONF_KEY_PRESS_DELAY_MS = "key_press_delay_ms"
 KEY_CHAIN_SEPARATOR = "+"
 
 
@@ -155,6 +158,12 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_TOKEN): cv.string,
         vol.Optional(CONF_SESSIONID): cv.string,
         vol.Optional(CONF_KEY_POWER_OFF, default=DEFAULT_KEY_POWER_OFF): cv.string,
+        vol.Optional(
+            CONF_KEY_PRESS_DELAY_MS, default=DEFAULT_KEY_PRESS_DELAY_MS
+        ): vol.All(
+            vol.Coerce(int),
+            vol.Range(min=MIN_KEY_PRESS_DELAY_MS, max=MAX_KEY_PRESS_DELAY_MS),
+        ),
         vol.Optional(CONF_TURN_ON_ACTION, default=None): cv.SCRIPT_SCHEMA,
         vol.Optional(CONF_TURN_OFF_ACTION, default=None): cv.SCRIPT_SCHEMA,
     }
@@ -191,6 +200,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         token = config.get(CONF_TOKEN)
         sessionid = config.get(CONF_SESSIONID)
         key_power_off = config.get(CONF_KEY_POWER_OFF)
+        key_press_delay_ms = config.get(CONF_KEY_PRESS_DELAY_MS)
         turn_on_action = config.get(CONF_TURN_ON_ACTION)
         turn_off_action = config.get(CONF_TURN_OFF_ACTION)
         if turn_on_action:
@@ -207,6 +217,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         token = "0"
         sessionid = "0"
         key_power_off = DEFAULT_KEY_POWER_OFF
+        key_press_delay_ms = DEFAULT_KEY_PRESS_DELAY_MS
         mac = None
         turn_on_action = None
         turn_off_action = None
@@ -225,7 +236,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     if host not in known_devices:
         # known_devices.add(ip_addr)
         add_entities([SamsungTVDevice(host, port, name, timeout, mac, uuid, token, sessionid, key_power_off,
-                                      turn_on_action, turn_off_action)])
+                                      key_press_delay_ms, turn_on_action, turn_off_action)])
         _LOGGER.info("Samsung TV %s:%d added as '%s'", host, port, name)
     else:
         _LOGGER.info("Ignoring duplicate Samsung TV %s:%d", host, port)
@@ -241,6 +252,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     token = data.get(CONF_TOKEN)
     sessionid = data.get(CONF_SESSIONID)
     key_power_off = data.get(CONF_KEY_POWER_OFF, DEFAULT_KEY_POWER_OFF)
+    key_press_delay_ms = data.get(CONF_KEY_PRESS_DELAY_MS, DEFAULT_KEY_PRESS_DELAY_MS)
 
     try:
         ipaddress.ip_address(host)
@@ -258,6 +270,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             token,
             sessionid,
             key_power_off,
+            key_press_delay_ms,
             None,
             None,
         )
@@ -269,7 +282,7 @@ class SamsungTVDevice(MediaPlayerEntity):
     """Representation of a Samsung TV."""
 
     def __init__(self, host, port, name, timeout, mac, uuid, token, sessionid, key_power_off,
-                 turn_on_action, turn_off_action):
+                 key_press_delay_ms, turn_on_action, turn_off_action):
         """Initialize the Samsung device."""
         _LOGGER.debug("function __init__")
         # Save a reference to the imported classes
@@ -278,6 +291,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._token = token
         self._sessionid = sessionid
         self._key_power_off = key_power_off
+        self._key_press_delay = key_press_delay_ms / 1000
         self._remote_class = PySmartCrypto
         self._name = name
         self._mac = mac
@@ -523,7 +537,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
             for digit in media_id:
                 await self.hass.async_add_job(self.send_key, "KEY_" + digit)
-                await asyncio.sleep(KEY_PRESS_TIMEOUT)
+                await asyncio.sleep(self._key_press_delay)
             await self.hass.async_add_job(self.send_key, "KEY_ENTER")
         elif media_type == MEDIA_TYPE_KEY:
             keys = [
@@ -539,7 +553,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             for index, key in enumerate(keys):
                 await self.hass.async_add_job(self.send_key, key)
                 if index < len(keys) - 1:
-                    await asyncio.sleep(KEY_PRESS_TIMEOUT)
+                    await asyncio.sleep(self._key_press_delay)
         else:
             _LOGGER.error("Unsupported media type")
             return

@@ -17,7 +17,11 @@ CONF_PIN = "pin"
 CONF_TOKEN = "token"
 CONF_SESSIONID = "sessionid"
 CONF_KEY_POWER_OFF = "key_power_off"
+CONF_KEY_PRESS_DELAY_MS = "key_press_delay_ms"
 DEFAULT_KEY_POWER_OFF = "KEY_POWEROFF"
+DEFAULT_KEY_PRESS_DELAY_MS = 500
+MIN_KEY_PRESS_DELAY_MS = 200
+MAX_KEY_PRESS_DELAY_MS = 2000
 DEFAULT_NAME = "Samsung TV Remote"
 DEFAULT_PORT = 8080
 
@@ -61,7 +65,13 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._name = DEFAULT_NAME
         self._mac = None
         self._key_power_off = DEFAULT_KEY_POWER_OFF
+        self._key_press_delay_ms = DEFAULT_KEY_PRESS_DELAY_MS
         self._pairing = None
+
+    @staticmethod
+    def async_get_options_flow(config_entry):
+        """Return the options flow."""
+        return SamsungTVEncryptedOptionsFlow(config_entry)
 
     async def async_step_user(self, user_input=None):
         """Start pairing with the TV."""
@@ -72,6 +82,9 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._port = user_input.get(CONF_PORT, DEFAULT_PORT)
             self._key_power_off = user_input.get(
                 CONF_KEY_POWER_OFF, DEFAULT_KEY_POWER_OFF
+            )
+            self._key_press_delay_ms = user_input.get(
+                CONF_KEY_PRESS_DELAY_MS, DEFAULT_KEY_PRESS_DELAY_MS
             )
 
             await self.async_set_unique_id(self._host)
@@ -96,6 +109,16 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional(
                         CONF_KEY_POWER_OFF, default=self._key_power_off
                     ): str,
+                    vol.Optional(
+                        CONF_KEY_PRESS_DELAY_MS,
+                        default=self._key_press_delay_ms,
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Range(
+                            min=MIN_KEY_PRESS_DELAY_MS,
+                            max=MAX_KEY_PRESS_DELAY_MS,
+                        ),
+                    ),
                 }
             ),
             errors=errors,
@@ -120,6 +143,7 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._name = (name or model or DEFAULT_NAME).replace("[TV] ", "")
         self._mac = await self.hass.async_add_executor_job(get_arp_mac, self._host)
         self._key_power_off = DEFAULT_KEY_POWER_OFF
+        self._key_press_delay_ms = DEFAULT_KEY_PRESS_DELAY_MS
 
         unique_id = device_id or (_strip_uuid(udn) if udn else self._host)
         await self.async_set_unique_id(unique_id)
@@ -188,6 +212,7 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             CONF_NAME: self._name,
                             CONF_MAC: self._mac,
                             CONF_KEY_POWER_OFF: self._key_power_off,
+                            CONF_KEY_PRESS_DELAY_MS: self._key_press_delay_ms,
                             CONF_TOKEN: pairing_data[CONF_TOKEN],
                             CONF_SESSIONID: pairing_data[CONF_SESSIONID],
                         },
@@ -197,4 +222,39 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="pin",
             data_schema=vol.Schema({vol.Required(CONF_PIN): str}),
             errors=errors,
+        )
+
+
+class SamsungTVEncryptedOptionsFlow(config_entries.OptionsFlow):
+    """Handle SamsungTV Encrypted options."""
+
+    def __init__(self, config_entry):
+        """Initialize the options flow."""
+        self._config_entry = config_entry
+
+    async def async_step_init(self, user_input=None):
+        """Manage integration options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        data = {**self._config_entry.data, **self._config_entry.options}
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_KEY_PRESS_DELAY_MS,
+                        default=data.get(
+                            CONF_KEY_PRESS_DELAY_MS,
+                            DEFAULT_KEY_PRESS_DELAY_MS,
+                        ),
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Range(
+                            min=MIN_KEY_PRESS_DELAY_MS,
+                            max=MAX_KEY_PRESS_DELAY_MS,
+                        ),
+                    ),
+                }
+            ),
         )
