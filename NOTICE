@@ -38,3 +38,4 @@ Changes recorded 2026-07-03:
 - Deduplicated SSDP discovery by Samsung deviceID when multiple services announce the same TV.
 - Updated README for UI-based setup, legacy YAML setup, diagnostics, and AI-assisted maintenance disclosure.
 - Released fork version 2026.7.3.
+- Raised the tested minimum Home Assistant version to 2026.7.0 and released fork version 2026.7.4.
