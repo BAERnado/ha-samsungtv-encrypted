@@ -39,3 +39,4 @@ Changes recorded 2026-07-03:
 - Updated README for UI-based setup, legacy YAML setup, diagnostics, and AI-assisted maintenance disclosure.
 - Released fork version 2026.7.3.
 - Raised the tested minimum Home Assistant version to 2026.7.0 and released fork version 2026.7.4.
+- Added local icon and logo assets for Home Assistant/HACS display and released fork version 2026.7.5.
