@@ -22,6 +22,7 @@ DEFAULT_NAME = "Samsung TV Remote"
 DEFAULT_PORT = 8080
 
 SSDP_UPNP_UDN = ("udn", "UDN")
+SSDP_UPNP_DEVICE_ID = ("deviceID", "device_id")
 SSDP_UPNP_FRIENDLY_NAME = ("friendlyName", "friendly_name", "name")
 SSDP_UPNP_MODEL_NAME = ("modelName", "model_name")
 
@@ -111,6 +112,7 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         upnp = _discovery_attr(discovery_info, "upnp", {}) or {}
         name = _upnp_value(upnp, SSDP_UPNP_FRIENDLY_NAME)
         model = _upnp_value(upnp, SSDP_UPNP_MODEL_NAME)
+        device_id = _upnp_value(upnp, SSDP_UPNP_DEVICE_ID)
         udn = _upnp_value(upnp, SSDP_UPNP_UDN)
 
         self._host = host
@@ -119,7 +121,7 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._mac = await self.hass.async_add_executor_job(get_arp_mac, self._host)
         self._key_power_off = DEFAULT_KEY_POWER_OFF
 
-        unique_id = _strip_uuid(udn) if udn else self._host
+        unique_id = device_id or (_strip_uuid(udn) if udn else self._host)
         await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured()
 
