@@ -33,3 +33,4 @@ Changes recorded 2026-07-02:
 
 Changes recorded 2026-07-03:
 - Added SSDP discovery so Home Assistant can offer detected Samsung TVs for setup.
+- Removed manual MAC address entry from the UI; MAC is now ARP-detected only.

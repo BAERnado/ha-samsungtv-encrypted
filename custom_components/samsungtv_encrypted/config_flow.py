@@ -70,7 +70,6 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._host = user_input[CONF_HOST]
             self._port = user_input.get(CONF_PORT, DEFAULT_PORT)
             self._name = user_input.get(CONF_NAME, DEFAULT_NAME)
-            self._mac = user_input.get(CONF_MAC)
             self._key_power_off = user_input.get(
                 CONF_KEY_POWER_OFF, DEFAULT_KEY_POWER_OFF
             )
@@ -95,7 +94,6 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_HOST): str,
                     vol.Optional(CONF_PORT, default=self._port): int,
                     vol.Optional(CONF_NAME, default=self._name): str,
-                    vol.Optional(CONF_MAC): str,
                     vol.Optional(
                         CONF_KEY_POWER_OFF, default=self._key_power_off
                     ): str,
@@ -198,41 +196,5 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="pin",
             data_schema=vol.Schema({vol.Required(CONF_PIN): str}),
-            errors=errors,
-        )
-
-    @staticmethod
-    def async_get_options_flow(config_entry):
-        """Return the options flow."""
-        return SamsungTVEncryptedOptionsFlow(config_entry)
-
-
-class SamsungTVEncryptedOptionsFlow(config_entries.OptionsFlow):
-    """Handle SamsungTV Encrypted options."""
-
-    def __init__(self, config_entry):
-        """Initialize options flow."""
-        self._config_entry = config_entry
-
-    async def async_step_init(self, user_input=None):
-        """Manage Samsung TV options."""
-        errors = {}
-        data = {**self._config_entry.data, **self._config_entry.options}
-        host = data[CONF_HOST]
-        mac = data.get(CONF_MAC) or ""
-
-        if user_input is not None:
-            mac = user_input.get(CONF_MAC) or ""
-            if not mac:
-                mac = await self.hass.async_add_executor_job(get_arp_mac, host) or ""
-                if not mac:
-                    errors["base"] = "mac_not_found"
-
-            if not errors:
-                return self.async_create_entry(title="", data={CONF_MAC: mac})
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema({vol.Optional(CONF_MAC, default=mac): str}),
             errors=errors,
         )
