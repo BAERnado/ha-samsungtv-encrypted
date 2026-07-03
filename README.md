@@ -150,6 +150,7 @@ service: media_player.play_media
 
 Multiple keys can be sent sequentially by joining them with `+`, for example `KEY_VOLUP+KEY_CHUP`.
 The delay between keys defaults to `500` ms and can be configured from `200` to `2000` ms in the integration options.
+Numeric chain entries override the configured delay for that position, up to `20000` ms, for example `KEY_VOLUP+2000+KEY_CHUP`.
 
 You can get lots of key codes [here](https://github.com/roberodin/ha-samsungtv-custom#key-codes)
 

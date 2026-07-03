@@ -82,6 +82,7 @@ DEFAULT_KEY_POWER_OFF = "KEY_POWEROFF"
 DEFAULT_KEY_PRESS_DELAY_MS = 500
 MIN_KEY_PRESS_DELAY_MS = 200
 MAX_KEY_PRESS_DELAY_MS = 2000
+MAX_KEY_CHAIN_DELAY_MS = 20000
 KNOWN_DEVICES_KEY = "samsungtv_known_devices"
 # SOURCES = {"TV": "KEY_TV", "HDMI": "KEY_HDMI"}
 # CONF_SOURCELIST = "sourcelist"
@@ -551,8 +552,18 @@ class SamsungTVDevice(MediaPlayerEntity):
             if len(keys) > 1:
                 _LOGGER.debug("Sending Samsung TV key chain: %s", keys)
             for index, key in enumerate(keys):
+                if key.isdigit():
+                    delay_ms = int(key)
+                    if delay_ms > MAX_KEY_CHAIN_DELAY_MS:
+                        _LOGGER.error(
+                            "Key chain delay must not exceed %d ms",
+                            MAX_KEY_CHAIN_DELAY_MS,
+                        )
+                        return
+                    await asyncio.sleep(delay_ms / 1000)
+                    continue
                 await self.hass.async_add_job(self.send_key, key)
-                if index < len(keys) - 1:
+                if index < len(keys) - 1 and not keys[index + 1].isdigit():
                     await asyncio.sleep(self._key_press_delay)
         else:
             _LOGGER.error("Unsupported media type")

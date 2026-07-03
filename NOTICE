@@ -46,3 +46,4 @@ Changes recorded 2026-07-03:
 - Replaced BeautifulSoup XML parsing with stdlib XML parsing for SOAP/SSDP responses and released fork version 2026.7.8.
 - Added send_key key chaining through media_player.play_media and released fork version 2026.7.9.
 - Added configurable key press delay from 200 to 2000 ms with a 500 ms default and released fork version 2026.7.10.
+- Added per-chain numeric delays up to 20000 ms for send_key key chains and released fork version 2026.7.11.
