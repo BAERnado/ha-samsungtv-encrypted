@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "SamsungTV Encrypted",
+        "title": "SamsungTV Encrypted (BAERnado)",
         "description": "Turn on the TV, then enter its network details. The next step asks for the PIN shown on the TV.",
         "data": {
           "host": "Host",

@@ -41,3 +41,4 @@ Changes recorded 2026-07-03:
 - Raised the tested minimum Home Assistant version to 2026.7.0 and released fork version 2026.7.4.
 - Added local icon and logo assets for Home Assistant/HACS display and released fork version 2026.7.5.
 - Moved local brand assets into Home Assistant's supported brand/ directory and released fork version 2026.7.6.
+- Added @BAERnado as code owner and updated the displayed integration name for fork differentiation.

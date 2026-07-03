@@ -1,10 +1,10 @@
 {
   "domain": "samsungtv_encrypted",
-  "name": "SamsungTV Encrypted",
+  "name": "SamsungTV Encrypted (BAERnado)",
   "documentation": "https://github.com/sermayoral/ha-samsungtv-encrypted",
   "requirements": ["wakeonlan>=1.1.6", "beautifulsoup4>=4.6.0", "netdisco>=2.8.3", "pycryptodome>=3.20.0"],
   "dependencies": ["ssdp"],
-  "codeowners": ["@sermayoral"],
+  "codeowners": ["@sermayoral", "@BAERnado"],
   "config_flow": true,
   "ssdp": [
     {"st": "urn:samsung.com:device:RemoteControlReceiver:1"},

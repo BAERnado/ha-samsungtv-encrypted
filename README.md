@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/MAINTAINER-%40sermayoral-red?style=for-the-badge)](https://github.com/sermayoral)
 [![](https://img.shields.io/badge/COMMUNITY-FORUM-success?style=for-the-badge)](https://community.home-assistant.io)
 
-# HomeAssistant - SamsungTV Encrypted Component
+# HomeAssistant - SamsungTV Encrypted (BAERnado) Component
 
 This is a custom component to allow control of Encrypted SamsungTV devices in [HomeAssistant](https://home-assistant.io). 
 This should work on H and J 2014/2015 models (according to [PySmartCrypto](https://github.com/eclair4151/SmartCrypto)
@@ -15,7 +15,7 @@ some extra features.
 
 ### 1. Easy Mode
 
-We support [HACS](https://hacs.netlify.com/). Go to "STORE", search "SamsungTV Encrypted" and install.
+We support [HACS](https://hacs.netlify.com/). Go to "STORE", search "SamsungTV Encrypted (BAERnado)" and install.
 
 ### 2. Manual
 
@@ -47,8 +47,8 @@ After a correct installation, your configuration directory should look like the 
 1. Install the integration and restart Home Assistant.
 2. Keep the TV turned on and reachable on the network.
 3. Go to **Settings -> Devices & services**.
-4. If Home Assistant discovers the TV, select the discovered SamsungTV Encrypted device.
-5. If discovery does not find the TV, use **Add integration -> SamsungTV Encrypted** and enter the host/IP and port.
+4. If Home Assistant discovers the TV, select the discovered SamsungTV Encrypted (BAERnado) device.
+5. If discovery does not find the TV, use **Add integration -> SamsungTV Encrypted (BAERnado)** and enter the host/IP and port.
 6. Enter the PIN shown on the TV when Home Assistant asks for it.
 
 The integration stores the encrypted token and session id in Home Assistant's config entry. Running `get_token.py`
