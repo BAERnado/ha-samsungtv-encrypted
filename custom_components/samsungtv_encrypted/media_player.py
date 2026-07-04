@@ -131,12 +131,18 @@ def _xml_text_values(response_xml, tag_name):
             continue
         try:
             # ponytail: Samsung embeds escaped XML here; a full SOAP model can replace this if more nested payloads appear.
-            values.extend(
-                _xml_values_from_root(ET.fromstring(f"<root>{fragment}</root>"), tag_name)
-            )
+            values.extend(_xml_values_from_root(_xml_fragment_root(fragment), tag_name))
         except ET.ParseError:
             continue
     return values
+
+
+def _xml_fragment_root(fragment):
+    """Parse an XML fragment, including fragments with an XML declaration."""
+    try:
+        return ET.fromstring(fragment)
+    except ET.ParseError:
+        return ET.fromstring(f"<root>{fragment}</root>")
 
 
 def _xml_values_from_root(root, tag_name):
