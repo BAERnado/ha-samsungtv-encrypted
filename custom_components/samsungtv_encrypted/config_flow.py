@@ -1,5 +1,6 @@
 """Config flow for SamsungTV Encrypted."""
 import logging
+import socket
 from urllib.parse import urlparse
 
 import voluptuous as vol
@@ -51,6 +52,14 @@ def _upnp_value(upnp, keys, default=None):
         if key in upnp:
             return upnp[key]
     return default
+
+
+async def _async_resolve_host(hass, host):
+    """Resolve a host name to an IP address if possible."""
+    try:
+        return await hass.async_add_executor_job(socket.gethostbyname, host)
+    except OSError:
+        return host
 
 
 class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -148,8 +157,39 @@ class SamsungTVEncryptedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         unique_id = device_id or (_strip_uuid(udn) if udn else self._host)
         await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured()
+        if await self._async_configured_entry_for_discovery():
+            return self.async_abort(reason="already_configured")
 
         return await self.async_step_confirm()
+
+    async def _async_configured_entry_for_discovery(self):
+        """Return True if this discovered TV is already configured."""
+        host_ip = await _async_resolve_host(self.hass, self._host)
+        for entry in self._async_current_entries():
+            entry_host = entry.data.get(CONF_HOST)
+            if entry_host:
+                entry_ip = await _async_resolve_host(self.hass, entry_host)
+                if self._host in (entry_host, entry_ip) or host_ip in (
+                    entry_host,
+                    entry_ip,
+                ):
+                    _LOGGER.debug(
+                        "Ignoring discovered Samsung TV %s because entry %s already uses host %s",
+                        self._host,
+                        entry.entry_id,
+                        entry_host,
+                    )
+                    return True
+            entry_mac = entry.data.get(CONF_MAC)
+            if self._mac and entry_mac and self._mac.lower() == entry_mac.lower():
+                _LOGGER.debug(
+                    "Ignoring discovered Samsung TV %s because entry %s already uses MAC %s",
+                    self._host,
+                    entry.entry_id,
+                    entry_mac,
+                )
+                return True
+        return False
 
     async def async_step_confirm(self, user_input=None):
         """Confirm a discovered Samsung TV before pairing."""

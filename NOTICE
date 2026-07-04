@@ -56,3 +56,4 @@ Changes recorded 2026-07-03:
 - Clarified active fork ownership and released fork version 2026.7.17.
 - Restored SOAP source-list parsing for escaped Samsung source XML, replaced deprecated async_add_job calls with executor jobs, and released fork version 2026.7.18.
 - Fixed escaped Samsung SourceList parsing when the embedded XML starts with an XML declaration and released fork version 2026.7.19.
+- Ignored SSDP-discovered TVs that already have a config entry with the same host/IP or MAC address and released fork version 2026.7.20.
