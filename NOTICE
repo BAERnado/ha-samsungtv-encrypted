@@ -54,3 +54,4 @@ Changes recorded 2026-07-03:
 - Fixed Hassfest manifest validation by declaring local polling and keeping the Home Assistant minimum version in hacs.json, then released fork version 2026.7.15.
 - Sorted integration manifest keys for Hassfest validation and released fork version 2026.7.16.
 - Clarified active fork ownership and released fork version 2026.7.17.
+- Restored SOAP source-list parsing for escaped Samsung source XML, replaced deprecated async_add_job calls with executor jobs, and released fork version 2026.7.18.

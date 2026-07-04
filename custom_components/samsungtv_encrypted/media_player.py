@@ -1,6 +1,7 @@
 """Support for interface with an Samsung TV."""
 import asyncio
 from datetime import timedelta
+import html
 import logging
 import socket
 import voluptuous as vol
@@ -116,10 +117,34 @@ def _xml_root(response_xml):
 
 def _xml_text_values(response_xml, tag_name):
     """Find text values by XML local name, case-insensitively."""
+    root = _xml_root(response_xml)
+    values = _xml_values_from_root(root, tag_name)
+    if values:
+        return values
+
+    values = []
+    for element in root.iter():
+        if not element.text:
+            continue
+        fragment = html.unescape(element.text)
+        if "<" not in fragment:
+            continue
+        try:
+            # ponytail: Samsung embeds escaped XML here; a full SOAP model can replace this if more nested payloads appear.
+            values.extend(
+                _xml_values_from_root(ET.fromstring(f"<root>{fragment}</root>"), tag_name)
+            )
+        except ET.ParseError:
+            continue
+    return values
+
+
+def _xml_values_from_root(root, tag_name):
+    """Find text values by XML local name from a parsed XML root."""
     target = tag_name.lower()
     return [
-        element.text
-        for element in _xml_root(response_xml).iter()
+        element.text.strip()
+        for element in root.iter()
         if _local_xml_name(element.tag) == target and element.text is not None
     ]
 
@@ -138,6 +163,15 @@ def _key_chain_delay_ms(key):
     if key.isdigit() or (key.startswith("-") and key[1:].isdigit()):
         return int(key)
     return None
+
+
+def _as_list(value):
+    """Return SOAP values as a list."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
 
 
 MIN_TIME_BETWEEN_FORCED_SCANS = timedelta(seconds=2)
@@ -546,9 +580,9 @@ class SamsungTVDevice(MediaPlayerEntity):
                 return
 
             for digit in media_id:
-                await self.hass.async_add_job(self.send_key, "KEY_" + digit)
+                await self.hass.async_add_executor_job(self.send_key, "KEY_" + digit)
                 await asyncio.sleep(self._key_press_delay)
-            await self.hass.async_add_job(self.send_key, "KEY_ENTER")
+            await self.hass.async_add_executor_job(self.send_key, "KEY_ENTER")
         elif media_type == MEDIA_TYPE_KEY:
             keys = [
                 key.strip()
@@ -571,7 +605,7 @@ class SamsungTVDevice(MediaPlayerEntity):
                         return
                     await asyncio.sleep(delay_ms / 1000)
                     continue
-                await self.hass.async_add_job(self.send_key, key)
+                await self.hass.async_add_executor_job(self.send_key, key)
                 if (
                     index < len(keys) - 1
                     and _key_chain_delay_ms(keys[index + 1]) is None
@@ -610,10 +644,10 @@ class SamsungTVDevice(MediaPlayerEntity):
     async def async_select_source(self, source):
         """Select input source."""
         _LOGGER.debug("function async_select_source")
-        while self._sourcelist == {}:
-            await self.hass.async_add_job(self.update)
+        if not self._sourcelist:
+            await self.hass.async_add_executor_job(self.update)
 
-        await self.hass.async_add_job(self.select_source, source)
+        await self.hass.async_add_executor_job(self.select_source, source)
 
     def SendSOAP(self, port, path, urn, service, body, XMLTag):
         _LOGGER.debug("function SendSOAP")
@@ -667,14 +701,11 @@ class SamsungTVDevice(MediaPlayerEntity):
                 return xml_values[0]
             return xml_values
         else:
-            return response_xml[response_xml.find('<s:Envelope'):]
+            return _xml_payload(response_xml)
 
     def xmlBytesToStr(self, xml_bytes):
         _LOGGER.debug("function xmlBytesToStr")
-        response_xml = xml_bytes.decode(encoding="utf-8")
-        response_xml = response_xml.replace("&lt;", "<")
-        response_xml = response_xml.replace("&gt;", ">")
-        return response_xml.replace("&quot;", "\"")
+        return xml_bytes.decode(encoding="utf-8", errors="replace")
 
     def discoverSSDP(self, timeout=5):
         _LOGGER.debug("function discoverSSDP")
@@ -722,19 +753,55 @@ class SamsungTVDevice(MediaPlayerEntity):
     def getSourceList(self):
         _LOGGER.debug("function getSourceList")
         sources = {}
-        source_names = self.SendSOAP(self._upnp_ports[1], self._upnp_paths[1], self._urns[1], 'GetSourceList', '', 'sourcetype')
+        source_names = _as_list(
+            self.SendSOAP(
+                self._upnp_ports[1],
+                self._upnp_paths[1],
+                self._urns[1],
+                'GetSourceList',
+                '',
+                'sourcetype',
+            )
+        )
         if source_names:
-            source_ids = self.SendSOAP(self._upnp_ports[1], self._upnp_paths[1], self._urns[1], 'GetSourceList', '', 'id')
+            source_ids = _as_list(
+                self.SendSOAP(
+                    self._upnp_ports[1],
+                    self._upnp_paths[1],
+                    self._urns[1],
+                    'GetSourceList',
+                    '',
+                    'id',
+                )
+            )
             if source_ids:
-                sources_connected = self.SendSOAP(self._upnp_ports[1], self._upnp_paths[1], self._urns[1], 'GetSourceList', '', 'connected')
+                sources_connected = _as_list(
+                    self.SendSOAP(
+                        self._upnp_ports[1],
+                        self._upnp_paths[1],
+                        self._urns[1],
+                        'GetSourceList',
+                        '',
+                        'connected',
+                    )
+                )
                 if sources_connected:
-                    del source_ids[0]
-                    j = 0;
-                    for i in range(len(sources_connected)):
-                        if sources_connected[i].lower() != 'yes':
-                            del source_names[i - j]
-                            del source_ids[i - j]
-                            j = j + 1
-                    sources = dict(zip(source_names, source_ids))
+                    source_ids = source_ids[1:]
+                    if not (
+                        len(source_names) == len(source_ids) == len(sources_connected)
+                    ):
+                        _LOGGER.debug(
+                            "Samsung TV source list length mismatch: names=%s ids=%s connected=%s",
+                            len(source_names),
+                            len(source_ids),
+                            len(sources_connected),
+                        )
+                    sources = {
+                        source_name: source_id
+                        for source_name, source_id, connected in zip(
+                            source_names, source_ids, sources_connected
+                        )
+                        if connected.lower() == 'yes'
+                    }
         _LOGGER.debug('Sourcelist available is {}'.format(sources))
         return sources
