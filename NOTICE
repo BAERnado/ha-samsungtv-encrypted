@@ -57,3 +57,8 @@ Changes recorded 2026-07-03:
 - Restored SOAP source-list parsing for escaped Samsung source XML, replaced deprecated async_add_job calls with executor jobs, and released fork version 2026.7.18.
 - Fixed escaped Samsung SourceList parsing when the embedded XML starts with an XML declaration and released fork version 2026.7.19.
 - Ignored SSDP-discovered TVs that already have a config entry with the same host/IP or MAC address and released fork version 2026.7.20.
+
+Changes recorded 2026-10-26:
+- Added a configurable Home Assistant power-on action to the config entry options.
+- Added an immediate state and network check before power-on actions, Wake-on-LAN, or encrypted power-on commands.
+- Documented an infrared power-on example using a Home Assistant script and released fork version 2026.10.0.

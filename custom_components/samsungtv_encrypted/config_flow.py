@@ -7,6 +7,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_MAC, CONF_NAME, CONF_PORT
+from homeassistant.helpers import selector
 
 from . import DOMAIN
 from .network import get_arp_mac
@@ -19,6 +20,7 @@ CONF_TOKEN = "token"
 CONF_SESSIONID = "sessionid"
 CONF_KEY_POWER_OFF = "key_power_off"
 CONF_KEY_PRESS_DELAY_MS = "key_press_delay_ms"
+CONF_TURN_ON_ACTION = "turn_on_action"
 DEFAULT_KEY_POWER_OFF = "KEY_POWEROFF"
 DEFAULT_KEY_PRESS_DELAY_MS = 500
 MIN_KEY_PRESS_DELAY_MS = 200
@@ -295,6 +297,12 @@ class SamsungTVEncryptedOptionsFlow(config_entries.OptionsFlow):
                             max=MAX_KEY_PRESS_DELAY_MS,
                         ),
                     ),
+                    vol.Optional(
+                        CONF_TURN_ON_ACTION,
+                        description={
+                            "suggested_value": data.get(CONF_TURN_ON_ACTION, [])
+                        },
+                    ): selector.ActionSelector(),
                 }
             ),
         )

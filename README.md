@@ -59,6 +59,35 @@ After a correct installation, your configuration directory should look like the 
 The integration stores the encrypted token and session id in Home Assistant's config entry. Running `get_token.py`
 manually is no longer needed for the normal setup path.
 
+### Power-on action
+
+The integration options allow a Home Assistant action to be configured for turning on a TV that does not support
+Wake-on-LAN. Open **Settings -> Devices & services -> SamsungTV Encrypted SSDP -> Configure** and add the action under
+**Power-on action**.
+
+Before running that action, the integration checks the last known TV state and performs an immediate network check.
+The action is skipped when the TV is already on or responds to the network check. This protects infrared power-toggle
+commands from accidentally switching off a running TV.
+
+For example, create this Home Assistant script in `scripts.yaml` and replace the remote, device, and command values
+with those used by your IR integration:
+
+```yaml
+samsung_tv_ir_power_on:
+  alias: Samsung TV IR power on
+  sequence:
+    - action: remote.send_command
+      target:
+        entity_id: remote.living_room_ir
+      data:
+        device: samsung_tv
+        command: power
+```
+
+Then select **Perform action**, choose `script.turn_on`, and target `script.samsung_tv_ir_power_on` in the integration's
+Power-on action editor. The action can also call `remote.send_command` directly; using a script keeps IR-specific
+details outside the integration.
+
 The TV name is taken from SSDP/UPnP discovery when available. The MAC address is detected from the local ARP cache
 after the TV has been contacted and is exposed as a diagnostic sensor. It is not required for normal control.
 

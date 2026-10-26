@@ -37,7 +37,11 @@
       "init": {
         "title": "SamsungTV Encrypted SSDP options",
         "data": {
-          "key_press_delay_ms": "Key press delay in milliseconds"
+          "key_press_delay_ms": "Key press delay in milliseconds",
+          "turn_on_action": "Power-on action"
+        },
+        "data_description": {
+          "turn_on_action": "Action to run when the TV is offline, for example an infrared remote command or a Home Assistant script."
         }
       }
     }

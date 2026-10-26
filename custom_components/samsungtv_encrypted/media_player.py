@@ -303,6 +303,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
     sessionid = data.get(CONF_SESSIONID)
     key_power_off = data.get(CONF_KEY_POWER_OFF, DEFAULT_KEY_POWER_OFF)
     key_press_delay_ms = data.get(CONF_KEY_PRESS_DELAY_MS, DEFAULT_KEY_PRESS_DELAY_MS)
+    turn_on_action_config = data.get(CONF_TURN_ON_ACTION)
+    turn_on_action = (
+        Script(hass, turn_on_action_config, name, "media_player")
+        if turn_on_action_config
+        else None
+    )
 
     try:
         ipaddress.ip_address(host)
@@ -321,7 +327,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             sessionid,
             key_power_off,
             key_press_delay_ms,
-            None,
+            turn_on_action,
             None,
         )
     ])
@@ -637,15 +643,32 @@ class SamsungTVDevice(MediaPlayerEntity):
         except OSError:
             _LOGGER.debug("Could not establish connection.")
 
-    def turn_on(self):
+    async def async_turn_on(self):
         """Turn the media player on."""
-        _LOGGER.debug("function turn_on")
+        _LOGGER.debug("function async_turn_on")
+        if self._state == STATE_ON:
+            _LOGGER.info("Samsung TV is already on; skipping power-on command")
+            return
+
+        if await self.hass.async_add_executor_job(self.pingTV):
+            _LOGGER.info(
+                "Samsung TV responded immediately before power-on; skipping command"
+            )
+            self._state = STATE_ON
+            self.async_write_ha_state()
+            return
+
         if self._turn_on_action:
-            self._turn_on_action.run(context=self._context)
+            _LOGGER.info("Samsung TV is offline; running configured power-on action")
+            await self._turn_on_action.async_run(context=self._context)
         elif self._mac:
-            wakeonlan.send_magic_packet(self._mac)
+            _LOGGER.info("Samsung TV is offline; sending Wake-on-LAN packet")
+            await self.hass.async_add_executor_job(
+                wakeonlan.send_magic_packet, self._mac
+            )
         else:
-            self.send_key("KEY_POWERON")
+            _LOGGER.info("Samsung TV is offline; sending encrypted power-on key")
+            await self.hass.async_add_executor_job(self.send_key, "KEY_POWERON")
 
     async def async_select_source(self, source):
         """Select input source."""
